@@ -140,7 +140,7 @@ class BoardPainter extends CustomPainter {
     if (startIdx >= path.length) return;
 
     final linePaint = Paint()
-      ..color = const Color(0xFF6D4C41) // Dark elegant brown
+      ..color = const Color(0xFF7B1FA2) // Beautiful purple arrow lines
       ..style = PaintingStyle.stroke
       ..strokeWidth = cellSize * 0.16
       ..strokeCap = StrokeCap.round
@@ -169,7 +169,7 @@ class BoardPainter extends CustomPainter {
 
   void _drawArrowHead(Canvas canvas, Offset headPos, GridPoint direction, double cellSize) {
     final arrowPaint = Paint()
-      ..color = const Color(0xFF6D4C41)
+      ..color = const Color(0xFF7B1FA2) // Matching purple arrowhead
       ..style = PaintingStyle.fill;
 
     double angle = 0.0;

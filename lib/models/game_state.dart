@@ -5,7 +5,7 @@ import 'path_model.dart';
 enum GameStatus { playing, victory, defeat }
 
 class GameState extends ChangeNotifier {
-  int currentLevel = 1;
+  int currentLevel = 65;
   int lives = 3;
   final int maxLives = 3;
   String currentSkin = 'worms'; // 'classic' or 'worms'

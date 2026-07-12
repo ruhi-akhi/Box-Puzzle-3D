@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'path_model.dart';
 
@@ -62,7 +63,7 @@ class GameState extends ChangeNotifier {
             const GridPoint(2, 3),
             const GridPoint(2, 2),
             const GridPoint(2, 1),
-            const GridPoint(2, 0), // exits Up (blocks 1 if 1 moves first)
+            const GridPoint(2, 0), // exits Up
           ],
         ),
       ];
@@ -158,121 +159,114 @@ class GameState extends ChangeNotifier {
   }
 
   void generateProceduralLevel(int level) {
-    gridWidth = 6;
-    gridHeight = 8;
-    paths = [];
-
-    // Let's create a few hardcoded paths for higher levels so it's guaranteed solvable and fun
-    // Level 6/Spring Battle theme-like winding paths
-    if (level % 2 == 0) {
-      paths = [
-        PathModel(
-          id: 'p1',
-          color: Colors.red,
-          points: [
-            const GridPoint(1, 1),
-            const GridPoint(1, 2),
-            const GridPoint(2, 2),
-            const GridPoint(2, 1),
-            const GridPoint(3, 1),
-            const GridPoint(4, 1),
-            const GridPoint(4, 0), // Up
-          ],
-        ),
-        PathModel(
-          id: 'p2',
-          color: Colors.blue,
-          points: [
-            const GridPoint(0, 4),
-            const GridPoint(1, 4),
-            const GridPoint(1, 3),
-            const GridPoint(2, 3),
-            const GridPoint(3, 3),
-            const GridPoint(3, 4),
-            const GridPoint(3, 5), // Down
-          ],
-        ),
-        PathModel(
-          id: 'p3',
-          color: Colors.green,
-          points: [
-            const GridPoint(5, 5),
-            const GridPoint(4, 5),
-            const GridPoint(4, 4),
-            const GridPoint(4, 3),
-            const GridPoint(5, 3), // Right
-          ],
-        ),
-        PathModel(
-          id: 'p4',
-          color: Colors.purple,
-          points: [
-            const GridPoint(2, 6),
-            const GridPoint(2, 5),
-            const GridPoint(1, 5),
-            const GridPoint(0, 5), // Left
-          ],
-        ),
-        PathModel(
-          id: 'p5',
-          color: Colors.orange,
-          points: [
-            const GridPoint(0, 0),
-            const GridPoint(1, 0),
-            const GridPoint(2, 0),
-            const GridPoint(3, 0), // Right
-          ],
-        ),
-      ];
+    // Dynamically scale grid size based on level
+    if (level < 5) {
+      gridWidth = 4;
+      gridHeight = 5;
+    } else if (level < 15) {
+      gridWidth = 5;
+      gridHeight = 6;
+    } else if (level < 30) {
+      gridWidth = 6;
+      gridHeight = 8;
+    } else if (level < 60) {
+      gridWidth = 8;
+      gridHeight = 10;
     } else {
-      // Winding maze of arrows
-      paths = [
-        PathModel(
-          id: 'w1',
-          color: Colors.teal,
-          points: [
-            const GridPoint(1, 0),
-            const GridPoint(1, 1),
-            const GridPoint(1, 2),
-            const GridPoint(2, 2),
-            const GridPoint(3, 2),
-            const GridPoint(3, 1),
-            const GridPoint(3, 0), // Up
-          ],
-        ),
-        PathModel(
-          id: 'w2',
-          color: Colors.pink,
-          points: [
-            const GridPoint(4, 4),
-            const GridPoint(3, 4),
-            const GridPoint(2, 4),
-            const GridPoint(1, 4),
-            const GridPoint(0, 4), // Left
-          ],
-        ),
-        PathModel(
-          id: 'w3',
-          color: Colors.indigo,
-          points: [
-            const GridPoint(2, 5),
-            const GridPoint(3, 5),
-            const GridPoint(4, 5),
-            const GridPoint(5, 5), // Right
-          ],
-        ),
-        PathModel(
-          id: 'w4',
-          color: Colors.amber,
-          points: [
-            const GridPoint(0, 2),
-            const GridPoint(0, 3),
-            const GridPoint(1, 3),
-            const GridPoint(2, 3),
-            const GridPoint(2, 2), // Up
-          ],
-        ),
-      ];
+      // Extremely hard levels! Scaling up to a highly winding maze
+      gridWidth = 9;
+      gridHeight = 11;
+    }
+
+    paths = [];
+    final occupied = <GridPoint>{};
+
+    // Number of paths scales with level
+    int pathCount = 3 + (level ~/ 5);
+    if (pathCount > 24) pathCount = 24; // Cap for layout space
+
+    // Max length of each path scales with level
+    int minLen = 3;
+    int maxLen = 3 + (level ~/ 12);
+    if (maxLen > 9) maxLen = 9; // Cap path length to prevent locking
+
+    final rand = math.Random(level * 31); // Seeded random for deterministic level design
+
+    // Curated high quality colors for paths
+    List<Color> colors = [
+      Colors.redAccent,
+      Colors.blueAccent,
+      Colors.greenAccent[700]!,
+      Colors.orangeAccent[700]!,
+      Colors.purpleAccent,
+      Colors.teal,
+      Colors.pinkAccent,
+      Colors.indigoAccent,
+      Colors.amber[800]!,
+      Colors.cyan[800]!,
+      Colors.deepOrange,
+      Colors.lime[900]!,
+    ];
+
+    // Generate paths using reverse slide-in method (guarantees solvability)
+    for (int pIdx = 0; pIdx < pathCount; pIdx++) {
+      // Get all unoccupied boundary points
+      List<GridPoint> boundaryPoints = [];
+      for (int x = 0; x < gridWidth; x++) {
+        if (!occupied.contains(GridPoint(x, 0))) boundaryPoints.add(GridPoint(x, 0));
+        if (!occupied.contains(GridPoint(x, gridHeight - 1))) boundaryPoints.add(GridPoint(x, gridHeight - 1));
+      }
+      for (int y = 0; y < gridHeight; y++) {
+        if (!occupied.contains(GridPoint(0, y))) boundaryPoints.add(GridPoint(0, y));
+        if (!occupied.contains(GridPoint(gridWidth - 1, y))) boundaryPoints.add(GridPoint(gridWidth - 1, y));
+      }
+
+      if (boundaryPoints.isEmpty) break;
+      GridPoint start = boundaryPoints[rand.nextInt(boundaryPoints.length)];
+
+      List<GridPoint> pathPts = [start];
+      occupied.add(start);
+
+      int targetLen = minLen + rand.nextInt(maxLen - minLen + 1);
+      GridPoint current = start;
+
+      for (int l = 1; l < targetLen; l++) {
+        List<GridPoint> neighbors = [];
+        List<GridPoint> dirs = [
+          const GridPoint(1, 0),
+          const GridPoint(-1, 0),
+          const GridPoint(0, 1),
+          const GridPoint(0, -1),
+        ];
+
+        for (var d in dirs) {
+          GridPoint n = current + d;
+          if (n.x >= 0 && n.x < gridWidth && n.y >= 0 && n.y < gridHeight) {
+            if (!occupied.contains(n)) {
+              neighbors.add(n);
+            }
+          }
+        }
+
+        if (neighbors.isEmpty) break;
+
+        // Choose a random neighbor to continue path
+        GridPoint next = neighbors[rand.nextInt(neighbors.length)];
+        pathPts.add(next);
+        occupied.add(next);
+        current = next;
+      }
+
+      if (pathPts.length >= 2) {
+        // Reverse because we generated from Head to Tail
+        List<GridPoint> pointsFromTailToHead = pathPts.reversed.toList();
+
+        paths.add(PathModel(
+          id: 'gen_$level\_$pIdx',
+          points: pointsFromTailToHead,
+          color: colors[pIdx % colors.length],
+        ));
+      }
     }
   }
 

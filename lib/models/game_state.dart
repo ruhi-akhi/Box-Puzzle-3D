@@ -6,10 +6,10 @@ import 'path_model.dart';
 enum GameStatus { playing, victory, defeat }
 
 class GameState extends ChangeNotifier {
-  int currentLevel = 65;
+  int currentLevel = 1;
   int lives = 3;
   final int maxLives = 3;
-  String currentSkin = 'worms'; // 'classic' or 'worms'
+  String currentSkin = 'classic'; // 'classic' or 'worms'
   GameStatus status = GameStatus.playing;
 
   int gridWidth = 6;
@@ -41,158 +41,77 @@ class GameState extends ChangeNotifier {
     lives = maxLives;
     isAnimating = false;
 
-    // We define some handcrafted levels, and generate procedurally for high levels
-    if (level == 1) {
-      gridWidth = 4;
-      gridHeight = 4;
-      paths = [
-        PathModel(
-          id: '1',
-          color: Colors.red,
-          points: [
-            const GridPoint(0, 1),
-            const GridPoint(1, 1),
-            const GridPoint(2, 1),
-            const GridPoint(3, 1), // exits Right
-          ],
-        ),
-        PathModel(
-          id: '2',
-          color: Colors.blue,
-          points: [
-            const GridPoint(2, 3),
-            const GridPoint(2, 2),
-            const GridPoint(2, 1),
-            const GridPoint(2, 0), // exits Up
-          ],
-        ),
-      ];
-    } else if (level == 2) {
-      gridWidth = 4;
-      gridHeight = 5;
-      paths = [
-        PathModel(
-          id: '1',
-          color: Colors.purple,
-          points: [
-            const GridPoint(0, 1),
-            const GridPoint(1, 1),
-            const GridPoint(2, 1),
-            const GridPoint(2, 0), // Up
-          ],
-        ),
-        PathModel(
-          id: '2',
-          color: Colors.orange,
-          points: [
-            const GridPoint(3, 3),
-            const GridPoint(2, 3),
-            const GridPoint(1, 3),
-            const GridPoint(1, 4), // Down
-          ],
-        ),
-        PathModel(
-          id: '3',
-          color: Colors.green,
-          points: [
-            const GridPoint(0, 2),
-            const GridPoint(1, 2),
-            const GridPoint(2, 2),
-            const GridPoint(3, 2), // Right
-          ],
-        ),
-      ];
-    } else if (level == 3) {
-      gridWidth = 5;
-      gridHeight = 6;
-      paths = [
-        PathModel(
-          id: '1',
-          color: Colors.red,
-          points: [
-            const GridPoint(0, 0),
-            const GridPoint(1, 0),
-            const GridPoint(1, 1),
-            const GridPoint(1, 2),
-            const GridPoint(0, 2), // Left
-          ],
-        ),
-        PathModel(
-          id: '2',
-          color: Colors.blue,
-          points: [
-            const GridPoint(4, 5),
-            const GridPoint(3, 5),
-            const GridPoint(2, 5),
-            const GridPoint(2, 4),
-            const GridPoint(2, 3),
-            const GridPoint(1, 3), // Left
-          ],
-        ),
-        PathModel(
-          id: '3',
-          color: Colors.amber,
-          points: [
-            const GridPoint(3, 1),
-            const GridPoint(3, 2),
-            const GridPoint(3, 3),
-            const GridPoint(4, 3), // Right
-          ],
-        ),
-        PathModel(
-          id: '4',
-          color: Colors.green,
-          points: [
-            const GridPoint(4, 0),
-            const GridPoint(4, 1),
-            const GridPoint(4, 2),
-            const GridPoint(4, 3),
-            const GridPoint(4, 4), // Down
-          ],
-        ),
-      ];
-    } else {
-      // Procedural level generation for endless levels
-      generateProceduralLevel(level);
-    }
+    // Use the same procedural generation process for every level so the board
+    // evolves naturally from easy to hard.
+    generateProceduralLevel(level);
     notifyListeners();
   }
 
   void generateProceduralLevel(int level) {
-    // Dynamically scale grid size based on level
-    if (level < 5) {
+    // Dynamically scale grid size based on level.
+    if (level == 1) {
       gridWidth = 4;
+      gridHeight = 4;
+    } else if (level < 4) {
+      gridWidth = 5;
       gridHeight = 5;
-    } else if (level < 15) {
+    } else if (level < 8) {
       gridWidth = 5;
       gridHeight = 6;
-    } else if (level < 30) {
+    } else if (level < 15) {
       gridWidth = 6;
+      gridHeight = 7;
+    } else if (level < 28) {
+      gridWidth = 7;
       gridHeight = 8;
-    } else if (level < 60) {
+    } else if (level < 45) {
+      gridWidth = 8;
+      gridHeight = 9;
+    } else if (level < 70) {
       gridWidth = 8;
       gridHeight = 10;
     } else {
-      // Extremely hard levels! Scaling up to a highly winding maze
       gridWidth = 9;
       gridHeight = 11;
     }
 
-    paths = [];
-    final occupied = <GridPoint>{};
+    int pathCount;
+    if (level == 1) {
+      pathCount = 5;
+    } else if (level == 2) {
+      pathCount = 10;
+    } else if (level < 4) {
+      pathCount = 7;
+    } else if (level < 8) {
+      pathCount = 8;
+    } else if (level < 15) {
+      pathCount = 10;
+    } else {
+      pathCount = 10 + ((level - 15) ~/ 5);
+    }
+    final int boundaryCapacity = gridWidth * 2 + gridHeight * 2 - 4;
+    if (pathCount > 14) pathCount = 14;
+    if (pathCount > boundaryCapacity) pathCount = boundaryCapacity;
 
-    // Number of paths scales with level
-    int pathCount = 3 + (level ~/ 5);
-    if (pathCount > 24) pathCount = 24; // Cap for layout space
+    int minLen;
+    int maxLen;
+    if (level == 1) {
+      minLen = 3;
+      maxLen = 4;
+    } else if (level == 2) {
+      minLen = 3;
+      maxLen = 4;
+    } else if (level < 8) {
+      minLen = 3;
+      maxLen = 5;
+    } else {
+      minLen = 4;
+      maxLen = 5 + ((level - 8) ~/ 5);
+    }
+    if (maxLen > (gridWidth + gridHeight - 4)) {
+      maxLen = gridWidth + gridHeight - 4;
+    }
 
-    // Max length of each path scales with level
-    int minLen = 3;
-    int maxLen = 3 + (level ~/ 12);
-    if (maxLen > 9) maxLen = 9; // Cap path length to prevent locking
-
-    final rand = math.Random(level * 31); // Seeded random for deterministic level design
-
-    // Curated high quality colors for paths
     List<Color> colors = [
       Colors.redAccent,
       Colors.blueAccent,
@@ -208,66 +127,149 @@ class GameState extends ChangeNotifier {
       Colors.lime[900]!,
     ];
 
-    // Generate paths using reverse slide-in method (guarantees solvability)
-    for (int pIdx = 0; pIdx < pathCount; pIdx++) {
-      // Get all unoccupied boundary points
-      List<GridPoint> boundaryPoints = [];
-      for (int x = 0; x < gridWidth; x++) {
-        if (!occupied.contains(GridPoint(x, 0))) boundaryPoints.add(GridPoint(x, 0));
-        if (!occupied.contains(GridPoint(x, gridHeight - 1))) boundaryPoints.add(GridPoint(x, gridHeight - 1));
-      }
-      for (int y = 0; y < gridHeight; y++) {
-        if (!occupied.contains(GridPoint(0, y))) boundaryPoints.add(GridPoint(0, y));
-        if (!occupied.contains(GridPoint(gridWidth - 1, y))) boundaryPoints.add(GridPoint(gridWidth - 1, y));
-      }
+    List<PathModel> candidatePaths = [];
+    for (int attempt = 0; attempt < 250; attempt++) {
+      candidatePaths = [];
+      final occupied = <GridPoint>{};
+      final rand = math.Random(level * 97 + attempt * 23);
 
-      if (boundaryPoints.isEmpty) break;
-      GridPoint start = boundaryPoints[rand.nextInt(boundaryPoints.length)];
-
-      List<GridPoint> pathPts = [start];
-      occupied.add(start);
-
-      int targetLen = minLen + rand.nextInt(maxLen - minLen + 1);
-      GridPoint current = start;
-
-      for (int l = 1; l < targetLen; l++) {
-        List<GridPoint> neighbors = [];
-        List<GridPoint> dirs = [
-          const GridPoint(1, 0),
-          const GridPoint(-1, 0),
-          const GridPoint(0, 1),
-          const GridPoint(0, -1),
-        ];
-
-        for (var d in dirs) {
-          GridPoint n = current + d;
-          if (n.x >= 0 && n.x < gridWidth && n.y >= 0 && n.y < gridHeight) {
-            if (!occupied.contains(n)) {
-              neighbors.add(n);
-            }
-          }
+      for (int pIdx = 0; pIdx < pathCount; pIdx++) {
+        List<GridPoint> boundaryPoints = [];
+        for (int x = 0; x < gridWidth; x++) {
+          final top = GridPoint(x, 0);
+          final bottom = GridPoint(x, gridHeight - 1);
+          if (!occupied.contains(top)) boundaryPoints.add(top);
+          if (!occupied.contains(bottom)) boundaryPoints.add(bottom);
+        }
+        for (int y = 0; y < gridHeight; y++) {
+          final left = GridPoint(0, y);
+          final right = GridPoint(gridWidth - 1, y);
+          if (!occupied.contains(left)) boundaryPoints.add(left);
+          if (!occupied.contains(right)) boundaryPoints.add(right);
         }
 
-        if (neighbors.isEmpty) break;
+        if (boundaryPoints.isEmpty) break;
 
-        // Choose a random neighbor to continue path
-        GridPoint next = neighbors[rand.nextInt(neighbors.length)];
-        pathPts.add(next);
-        occupied.add(next);
-        current = next;
+        final centerX = (gridWidth - 1) / 2.0;
+        final centerY = (gridHeight - 1) / 2.0;
+        boundaryPoints.sort((a, b) {
+          final aDist = (a.x - centerX).abs() + (a.y - centerY).abs();
+          final bDist = (b.x - centerX).abs() + (b.y - centerY).abs();
+          return aDist.compareTo(bDist);
+        });
+        final pickRange = boundaryPoints.length.clamp(1, 6);
+        final start = boundaryPoints[rand.nextInt(pickRange)];
+
+        List<GridPoint> pathPts = [start];
+        occupied.add(start);
+
+        int targetLen = minLen + rand.nextInt(maxLen - minLen + 1);
+        GridPoint current = start;
+        GridPoint? previousDir;
+
+        for (int step = 1; step < targetLen; step++) {
+          List<GridPoint> neighborDirs = [];
+          final dirs = [
+            const GridPoint(1, 0),
+            const GridPoint(-1, 0),
+            const GridPoint(0, 1),
+            const GridPoint(0, -1),
+          ];
+
+          for (final d in dirs) {
+            final neighbor = current + d;
+            if (neighbor.x >= 0 && neighbor.x < gridWidth && neighbor.y >= 0 && neighbor.y < gridHeight) {
+              if (!occupied.contains(neighbor)) {
+                neighborDirs.add(d);
+              }
+            }
+          }
+
+          if (neighborDirs.isEmpty) break;
+
+          GridPoint chosenDir;
+          if (previousDir != null && neighborDirs.contains(previousDir) && rand.nextDouble() < 0.7) {
+            chosenDir = previousDir;
+          } else {
+            chosenDir = neighborDirs[rand.nextInt(neighborDirs.length)];
+          }
+
+          current = current + chosenDir;
+          pathPts.add(current);
+          occupied.add(current);
+          previousDir = chosenDir;
+        }
+
+        if (pathPts.length >= 2) {
+          final reversed = pathPts.reversed.toList();
+          candidatePaths.add(PathModel(
+            id: 'gen_$level\_$pIdx\_$attempt',
+            points: reversed,
+            color: colors[pIdx % colors.length],
+          ));
+        }
       }
 
-      if (pathPts.length >= 2) {
-        // Reverse because we generated from Head to Tail
-        List<GridPoint> pointsFromTailToHead = pathPts.reversed.toList();
-
-        paths.add(PathModel(
-          id: 'gen_$level\_$pIdx',
-          points: pointsFromTailToHead,
-          color: colors[pIdx % colors.length],
-        ));
+      if (candidatePaths.isNotEmpty && isLevelSolvable(candidatePaths)) {
+        break;
       }
     }
+
+    paths = candidatePaths;
+    if (paths.isEmpty) {
+      paths = [
+        PathModel(
+          id: 'fallback',
+          points: [
+            const GridPoint(0, 1),
+            const GridPoint(1, 1),
+            const GridPoint(2, 1),
+            const GridPoint(3, 1),
+          ],
+          color: Colors.blueAccent,
+        ),
+      ];
+    }
+    notifyListeners();
+  }
+
+  bool isLevelSolvable(List<PathModel> candidatePaths) {
+    if (candidatePaths.isEmpty) return true;
+    final remaining = candidatePaths.map((path) => path.copyWith()).toList();
+    return _canSolveRemaining(remaining);
+  }
+
+  bool _canSolveRemaining(List<PathModel> remainingPaths) {
+    if (remainingPaths.isEmpty) return true;
+
+    for (final path in List<PathModel>.from(remainingPaths)) {
+      if (_canRemovePath(path, remainingPaths)) {
+        final nextRemaining = remainingPaths.where((candidate) => candidate.id != path.id).toList();
+        if (_canSolveRemaining(nextRemaining)) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
+  bool _canRemovePath(PathModel path, List<PathModel> remainingPaths) {
+    final occupied = <GridPoint>{};
+    for (final otherPath in remainingPaths) {
+      if (otherPath.id == path.id) continue;
+      occupied.addAll(otherPath.getOccupiedCells());
+    }
+
+    GridPoint current = path.head + path.exitDirection;
+    while (current.x >= 0 && current.x < gridWidth && current.y >= 0 && current.y < gridHeight) {
+      if (occupied.contains(current)) {
+        return false;
+      }
+      current = current + path.exitDirection;
+    }
+
+    return true;
   }
 
   // Find if a tap hit a segment of any path

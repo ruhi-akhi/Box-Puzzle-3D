@@ -86,8 +86,10 @@ class GameState extends ChangeNotifier {
       pathCount = 8;
     } else if (level < 15) {
       pathCount = 10;
-    } else {
+    } else if (level < 35) {
       pathCount = 10 + ((level - 15) ~/ 5);
+    } else {
+      pathCount = 6;
     }
     final int boundaryCapacity = gridWidth * 2 + gridHeight * 2 - 4;
     if (pathCount > 14) pathCount = 14;

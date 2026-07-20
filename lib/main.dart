@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'models/game_state.dart';
 import 'screens/home_screen.dart';
+import 'services/audio_manager.dart';
 
 void main() {
   runApp(const AmazeGoApp());
@@ -16,11 +17,29 @@ class AmazeGoApp extends StatefulWidget {
 
 class _AmazeGoAppState extends State<AmazeGoApp> {
   late final GameState _gameState;
+  late final AudioManager _audioManager;
 
   @override
   void initState() {
     super.initState();
     _gameState = GameState();
+    _audioManager = AudioManager();
+    _startBackgroundMusic();
+  }
+
+  Future<void> _startBackgroundMusic() async {
+    // Play background music on app start (gracefully handles missing files)
+    try {
+      await _audioManager.playBackgroundMusic('assets/music/background_music.wav');
+    } catch (e) {
+      // Audio system will handle the error
+    }
+  }
+
+  @override
+  void dispose() {
+    _audioManager.dispose();
+    super.dispose();
   }
 
   @override
@@ -43,7 +62,7 @@ class _AmazeGoAppState extends State<AmazeGoApp> {
               Theme.of(context).textTheme,
             ),
           ),
-          home: HomeScreen(gameState: _gameState),
+          home: HomeScreen(gameState: _gameState, audioManager: _audioManager),
         );
       },
     );

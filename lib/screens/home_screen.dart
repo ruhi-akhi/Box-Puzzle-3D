@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../models/game_state.dart';
+import '../services/audio_manager.dart';
 import 'game_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   final GameState gameState;
+  final AudioManager audioManager;
 
-  const HomeScreen({super.key, required this.gameState});
+  const HomeScreen({super.key, required this.gameState, required this.audioManager});
 
   @override
   Widget build(BuildContext context) {
@@ -125,7 +127,7 @@ class HomeScreen extends StatelessWidget {
                                           Navigator.push(
                                             context,
                                             MaterialPageRoute(
-                                              builder: (_) => GameScreen(gameState: gameState),
+                                              builder: (_) => GameScreen(gameState: gameState, audioManager: audioManager),
                                             ),
                                           );
                                         },
@@ -208,7 +210,7 @@ class HomeScreen extends StatelessWidget {
                                           Navigator.push(
                                             context,
                                             MaterialPageRoute(
-                                              builder: (_) => GameScreen(gameState: gameState),
+                                              builder: (_) => GameScreen(gameState: gameState, audioManager: audioManager),
                                             ),
                                           );
                                         },
@@ -282,7 +284,7 @@ class HomeScreen extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (_) => GameScreen(gameState: gameState),
+                            builder: (_) => GameScreen(gameState: gameState, audioManager: audioManager),
                           ),
                         );
                       },
@@ -388,34 +390,66 @@ class HomeScreen extends StatelessWidget {
   void _showSettings(BuildContext context) {
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFFFAF6EE),
-        title: Text(
-          'Settings',
-          style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: const Color(0xFF4E3629)),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.palette, color: Color(0xFF4E3629)),
-              title: Text('Worm Theme (Spring Battle)', style: GoogleFonts.outfit()),
-              trailing: gameState.currentSkin == 'worms' ? const Icon(Icons.check, color: Colors.green) : null,
-              onTap: () {
-                gameState.setSkin('worms');
-                Navigator.pop(ctx);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.arrow_forward, color: Color(0xFF4E3629)),
-              title: Text('Classic Arrow Theme', style: GoogleFonts.outfit()),
-              trailing: gameState.currentSkin == 'classic' ? const Icon(Icons.check, color: Colors.green) : null,
-              onTap: () {
-                gameState.setSkin('classic');
-                Navigator.pop(ctx);
-              },
-            ),
-          ],
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          backgroundColor: const Color(0xFFFAF6EE),
+          title: Text(
+            'Settings',
+            style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: const Color(0xFF4E3629)),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.palette, color: Color(0xFF4E3629)),
+                title: Text('Worm Theme (Spring Battle)', style: GoogleFonts.outfit()),
+                trailing: gameState.currentSkin == 'worms' ? const Icon(Icons.check, color: Colors.green) : null,
+                onTap: () {
+                  gameState.setSkin('worms');
+                  Navigator.pop(ctx);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.arrow_forward, color: Color(0xFF4E3629)),
+                title: Text('Classic Arrow Theme', style: GoogleFonts.outfit()),
+                trailing: gameState.currentSkin == 'classic' ? const Icon(Icons.check, color: Colors.green) : null,
+                onTap: () {
+                  gameState.setSkin('classic');
+                  Navigator.pop(ctx);
+                },
+              ),
+              const Divider(height: 20),
+              // Audio Controls
+              ListTile(
+                leading: Icon(
+                  audioManager.isMusicEnabled ? Icons.music_note : Icons.music_note_outlined,
+                  color: const Color(0xFF4E3629),
+                ),
+                title: Text('Background Music', style: GoogleFonts.outfit()),
+                trailing: Switch(
+                  value: audioManager.isMusicEnabled,
+                  onChanged: (value) {
+                    audioManager.toggleMusic();
+                    setState(() {});
+                  },
+                ),
+              ),
+              ListTile(
+                leading: Icon(
+                  audioManager.isSoundEnabled ? Icons.volume_up : Icons.volume_off,
+                  color: const Color(0xFF4E3629),
+                ),
+                title: Text('Sound Effects', style: GoogleFonts.outfit()),
+                trailing: Switch(
+                  value: audioManager.isSoundEnabled,
+                  onChanged: (value) {
+                    audioManager.toggleSound();
+                    setState(() {});
+                  },
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

@@ -2,13 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../models/game_state.dart';
 import '../models/path_model.dart';
+import '../services/audio_manager.dart';
 import '../widgets/board_painter.dart';
 import '../widgets/exit_dialog.dart';
 
 class GameScreen extends StatefulWidget {
   final GameState gameState;
+  final AudioManager audioManager;
 
-  const GameScreen({super.key, required this.gameState});
+  const GameScreen({super.key, required this.gameState, required this.audioManager});
 
   @override
   State<GameScreen> createState() => _GameScreenState();

@@ -15,6 +15,7 @@ class GameState extends ChangeNotifier {
   int gridWidth = 6;
   int gridHeight = 8;
   List<PathModel> paths = [];
+  int initialPathCount = 0;
   bool isAnimating = false;
 
   GameState() {
@@ -232,7 +233,14 @@ class GameState extends ChangeNotifier {
         ),
       ];
     }
+    initialPathCount = paths.length;
     notifyListeners();
+  }
+
+  double get progressPercent {
+    if (initialPathCount == 0) return 1.0;
+    final progress = (initialPathCount - paths.length) / initialPathCount;
+    return progress.clamp(0.0, 1.0);
   }
 
   bool isLevelSolvable(List<PathModel> candidatePaths) {

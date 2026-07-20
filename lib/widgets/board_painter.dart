@@ -34,11 +34,6 @@ class BoardPainter extends CustomPainter {
       canvas.drawLine(Offset(0, j * cellSize), Offset(size.width, j * cellSize), gridPaint);
     }
 
-    // Draw corner holes for classic skin
-    if (skin == 'classic') {
-      _drawCornerHoles(canvas, size, cellSize);
-    }
-
     // Draw each path
     for (var path in paths) {
       // Calculate slide offsets and animation modifiers
@@ -145,7 +140,7 @@ class BoardPainter extends CustomPainter {
     if (startIdx >= path.length) return;
 
     final linePaint = Paint()
-      ..color = const Color(0xFF7B1FA2) // Beautiful purple arrow lines
+      ..color = const Color(0xFF6D4C41) // Brown arrow lines matching screenshot
       ..style = PaintingStyle.stroke
       ..strokeWidth = cellSize * 0.11
       ..strokeCap = StrokeCap.round
@@ -172,54 +167,9 @@ class BoardPainter extends CustomPainter {
     _drawArrowHead(canvas, headPos, path.exitDirection, cellSize);
   }
 
-  void _drawCornerHoles(Canvas canvas, Size size, double cellSize) {
-    final cornerRadius = cellSize * 0.45;
-    final holePaint = Paint()
-      ..color = const Color(0xFFB8860B).withOpacity(0.6)
-      ..style = PaintingStyle.fill;
-    
-    final holeBorderPaint = Paint()
-      ..color = const Color(0xFF8B6914).withOpacity(0.8)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.0;
-
-    // Draw the 4 corner holes
-    List<Offset> corners = [
-      Offset(cellSize * 0.5, cellSize * 0.5),                           // Top-left
-      Offset(size.width - cellSize * 0.5, cellSize * 0.5),              // Top-right
-      Offset(cellSize * 0.5, size.height - cellSize * 0.5),             // Bottom-left
-      Offset(size.width - cellSize * 0.5, size.height - cellSize * 0.5) // Bottom-right
-    ];
-
-    for (var corner in corners) {
-      // Draw hole shadow
-      canvas.drawCircle(
-        corner + const Offset(1.5, 2),
-        cornerRadius,
-        Paint()..color = Colors.black.withOpacity(0.15)
-      );
-      
-      // Draw hole fill
-      canvas.drawCircle(corner, cornerRadius, holePaint);
-      
-      // Draw hole border
-      canvas.drawCircle(corner, cornerRadius, holeBorderPaint);
-      
-      // Add shine/highlight inside the hole
-      final shinePaint = Paint()
-        ..color = Colors.white.withOpacity(0.15)
-        ..style = PaintingStyle.fill;
-      canvas.drawCircle(
-        corner - Offset(cornerRadius * 0.3, cornerRadius * 0.3),
-        cornerRadius * 0.35,
-        shinePaint
-      );
-    }
-  }
-
   void _drawArrowHead(Canvas canvas, Offset headPos, GridPoint direction, double cellSize) {
     final arrowPaint = Paint()
-      ..color = const Color(0xFF7B1FA2) // Matching purple arrowhead
+      ..color = const Color(0xFF6D4C41) // Matching brown arrowhead
       ..style = PaintingStyle.fill;
 
     double angle = 0.0;

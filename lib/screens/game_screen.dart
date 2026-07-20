@@ -46,7 +46,7 @@ class _GameScreenState extends State<GameScreen> {
     final isWormSkin = gs.currentSkin == 'worms';
 
     // Calculate level progress (percentage of paths cleared)
-    double progress = gs.paths.isEmpty ? 100.0 : 0.0;
+    double progress = gs.progressPercent * 100.0;
 
     return WillPopScope(
       onWillPop: _onWillPop,

@@ -19,20 +19,7 @@ class BoardPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     double cellSize = size.width / gridWidth;
 
-    // Draw Board Background Grid Lines
-    final gridPaint = Paint()
-      ..color = skin == 'worms'
-          ? const Color(0xFF81C784).withOpacity(0.3)
-          : const Color(0xFFD7CCC8).withOpacity(0.4)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.0;
-
-    for (int i = 0; i <= gridWidth; i++) {
-      canvas.drawLine(Offset(i * cellSize, 0), Offset(i * cellSize, size.height), gridPaint);
-    }
-    for (int j = 0; j <= gridHeight; j++) {
-      canvas.drawLine(Offset(0, j * cellSize), Offset(size.width, j * cellSize), gridPaint);
-    }
+    _paintDottedBackground(canvas, size);
 
     // Draw each path
     for (var path in paths) {
@@ -53,6 +40,22 @@ class BoardPainter extends CustomPainter {
         _paintWorm(canvas, path, slide, cellSize, bumpOffset);
       } else {
         _paintClassicArrow(canvas, path, slide, cellSize, bumpOffset);
+      }
+    }
+  }
+
+  void _paintDottedBackground(Canvas canvas, Size size) {
+    final dotPaint = Paint()
+      ..color = (skin == 'worms' ? const Color(0xFF81C784) : const Color(0xFF6D4C41))
+          .withOpacity(0.22)
+      ..style = PaintingStyle.fill;
+
+    const double spacing = 12.0;
+    const double dotRadius = 0.9;
+
+    for (double y = spacing / 2; y < size.height; y += spacing) {
+      for (double x = spacing / 2; x < size.width; x += spacing) {
+        canvas.drawCircle(Offset(x, y), dotRadius, dotPaint);
       }
     }
   }
@@ -142,7 +145,7 @@ class BoardPainter extends CustomPainter {
     final linePaint = Paint()
       ..color = const Color(0xFF6D4C41) // Brown arrow lines matching screenshot
       ..style = PaintingStyle.stroke
-      ..strokeWidth = cellSize * 0.11
+      ..strokeWidth = cellSize * 0.07
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round;
 
@@ -178,7 +181,7 @@ class BoardPainter extends CustomPainter {
     if (direction.y > 0) angle = math.pi / 2;
     if (direction.y < 0) angle = -math.pi / 2;
 
-    double arrowSize = cellSize * 0.18;
+    double arrowSize = cellSize * 0.13;
 
     canvas.save();
     canvas.translate(headPos.dx, headPos.dy);

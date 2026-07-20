@@ -54,43 +54,39 @@ class GameState extends ChangeNotifier {
       gridWidth = 4;
       gridHeight = 4;
     } else if (level < 4) {
-      gridWidth = 5;
-      gridHeight = 5;
-    } else if (level < 8) {
-      gridWidth = 5;
-      gridHeight = 6;
-    } else if (level < 15) {
       gridWidth = 6;
       gridHeight = 7;
-    } else if (level < 28) {
+    } else if (level < 8) {
       gridWidth = 7;
       gridHeight = 8;
-    } else if (level < 45) {
+    } else if (level < 15) {
       gridWidth = 8;
       gridHeight = 9;
-    } else if (level < 70) {
-      gridWidth = 8;
+    } else if (level < 28) {
+      gridWidth = 9;
       gridHeight = 10;
-    } else {
+    } else if (level < 45) {
       gridWidth = 9;
       gridHeight = 11;
+    } else if (level < 70) {
+      gridWidth = 10;
+      gridHeight = 12;
+    } else {
+      gridWidth = 11;
+      gridHeight = 13;
     }
 
     int pathCount;
     if (level == 1) {
       pathCount = 5;
     } else if (level == 2) {
-      pathCount = 10;
-    } else if (level < 4) {
-      pathCount = 7;
-    } else if (level < 8) {
       pathCount = 8;
-    } else if (level < 15) {
+    } else if (level == 3) {
       pathCount = 10;
     } else if (level < 35) {
-      pathCount = 10 + ((level - 15) ~/ 5);
+      pathCount = 12;
     } else {
-      pathCount = 6;
+      pathCount = 12 + ((level - 35) ~/ 15).clamp(0, 2);
     }
     final int boundaryCapacity = gridWidth * 2 + gridHeight * 2 - 4;
     if (pathCount > 14) pathCount = 14;
@@ -103,10 +99,10 @@ class GameState extends ChangeNotifier {
       maxLen = 4;
     } else if (level == 2) {
       minLen = 3;
-      maxLen = 4;
-    } else if (level < 8) {
-      minLen = 3;
       maxLen = 5;
+    } else if (level < 8) {
+      minLen = 4;
+      maxLen = 6;
     } else {
       minLen = 4;
       maxLen = 5 + ((level - 8) ~/ 5);
@@ -191,10 +187,15 @@ class GameState extends ChangeNotifier {
           if (neighborDirs.isEmpty) break;
 
           GridPoint chosenDir;
-          if (previousDir != null && neighborDirs.contains(previousDir) && rand.nextDouble() < 0.7) {
+          if (previousDir != null && neighborDirs.contains(previousDir) && rand.nextDouble() < 0.3) {
+            // Occasionally keep going straight
             chosenDir = previousDir;
           } else {
-            chosenDir = neighborDirs[rand.nextInt(neighborDirs.length)];
+            // Prefer turning so paths coil and interlock instead of running straight
+            List<GridPoint> turnDirs =
+                previousDir == null ? neighborDirs : neighborDirs.where((d) => d != previousDir).toList();
+            if (turnDirs.isEmpty) turnDirs = neighborDirs;
+            chosenDir = turnDirs[rand.nextInt(turnDirs.length)];
           }
 
           current = current + chosenDir;

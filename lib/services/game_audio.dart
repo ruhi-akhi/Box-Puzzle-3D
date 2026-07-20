@@ -6,27 +6,27 @@ class GameAudio {
 
   /// Play sound when a path is cleared/matched
   static Future<void> playPathClear() async {
-    await _audioManager.playSoundEffect('assets/sounds/match_clear.mp3');
+    await _audioManager.playSoundEffect('sounds/match_clear.mp3');
   }
 
   /// Play sound when victory/level complete
   static Future<void> playVictory() async {
-    await _audioManager.playSoundEffect('assets/sounds/victory.mp3');
+    await _audioManager.playSoundEffect('sounds/victory.mp3');
   }
 
   /// Play sound when game over/defeat
   static Future<void> playDefeat() async {
-    await _audioManager.playSoundEffect('assets/sounds/defeat.mp3');
+    await _audioManager.playSoundEffect('sounds/defeat.mp3');
   }
 
   /// Play sound for UI button interactions
   static Future<void> playButtonClick() async {
-    await _audioManager.playSoundEffect('assets/sounds/button_click.mp3');
+    await _audioManager.playSoundEffect('sounds/button_click.mp3');
   }
 
   /// Play sound when selecting/tapping a path
   static Future<void> playSelect() async {
-    await _audioManager.playSoundEffect('assets/sounds/select_sound.mp3');
+    await _audioManager.playSoundEffect('sounds/select_sound.mp3');
   }
 
   /// Adjust background music volume

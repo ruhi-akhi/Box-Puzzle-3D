@@ -8,10 +8,11 @@ To run the game on your computer in Chrome:
 ```bash
 flutter run -d chrome
 ```
-
+C:\Users\WALTON\flutter\bin
 To run on an Android or iOS emulator:
 ```bash
-flutter run
+
+
 ```
 
 ---

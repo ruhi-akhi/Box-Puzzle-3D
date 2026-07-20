@@ -18,19 +18,22 @@ class AmazeGoApp extends StatefulWidget {
 class _AmazeGoAppState extends State<AmazeGoApp> {
   late final GameState _gameState;
   late final AudioManager _audioManager;
+  bool _musicStarted = false;
 
   @override
   void initState() {
     super.initState();
     _gameState = GameState();
     _audioManager = AudioManager();
-    _startBackgroundMusic();
   }
 
-  Future<void> _startBackgroundMusic() async {
-    // Play background music on app start (gracefully handles missing files)
+  Future<void> _startBackgroundMusicOnce() async {
+    // Browsers block audio autoplay until the user has interacted with the
+    // page, so start music on first tap instead of at app boot.
+    if (_musicStarted) return;
+    _musicStarted = true;
     try {
-      await _audioManager.playBackgroundMusic('assets/music/background_music.wav');
+      await _audioManager.playBackgroundMusic('music/background_music.wav');
     } catch (e) {
       // Audio system will handle the error
     }
@@ -62,7 +65,11 @@ class _AmazeGoAppState extends State<AmazeGoApp> {
               Theme.of(context).textTheme,
             ),
           ),
-          home: HomeScreen(gameState: _gameState, audioManager: _audioManager),
+          home: Listener(
+            behavior: HitTestBehavior.translucent,
+            onPointerDown: (_) => _startBackgroundMusicOnce(),
+            child: HomeScreen(gameState: _gameState, audioManager: _audioManager),
+          ),
         );
       },
     );

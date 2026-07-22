@@ -58,7 +58,7 @@ class _GameScreenState extends State<GameScreen> {
             : const Color(0xFFFAF6EE), // Cream background for arrows
         body: Center(
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 500),
+            constraints: const BoxConstraints(maxWidth: 720),
             child: Stack(
               children: [
                 // Main Content
@@ -176,12 +176,15 @@ class _GameScreenState extends State<GameScreen> {
                         ),
                       ),
 
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 8),
 
-                      // Game Grid Board (Fits perfectly using LayoutBuilder)
+                      // Game Grid Board (Fits perfectly using LayoutBuilder).
+                      // Sits flush on the page background (no separate card/
+                      // shadow) with a tight gutter so the board dominates the
+                      // screen the way the original game's board does.
                       Expanded(
                         child: Padding(
-                          padding: const EdgeInsets.all(16.0),
+                          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
                           child: LayoutBuilder(
                             builder: (context, constraints) {
                               double maxW = constraints.maxWidth;
@@ -199,26 +202,9 @@ class _GameScreenState extends State<GameScreen> {
                               double cellSize = boardW / gs.gridWidth;
 
                               return Center(
-                                child: Container(
+                                child: SizedBox(
                                   width: boardW,
                                   height: boardH,
-                                  decoration: BoxDecoration(
-                                    color: isWormSkin
-                                        ? const Color(0xFFA5D6A7).withOpacity(0.5)
-                                        : const Color(0xFFEFEBE9),
-                                    borderRadius: BorderRadius.circular(16),
-                                    border: Border.all(
-                                      color: const Color(0xFF4E3629).withOpacity(0.15),
-                                      width: 2,
-                                    ),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black.withOpacity(0.08),
-                                        blurRadius: 15,
-                                        offset: const Offset(0, 8),
-                                      ),
-                                    ],
-                                  ),
                                   child: GestureDetector(
                                     onTapUp: (details) {
                                       double dx = details.localPosition.dx;
@@ -246,19 +232,19 @@ class _GameScreenState extends State<GameScreen> {
                         ),
                       ),
 
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 6),
 
                       // Quick Hint Footer
                       Text(
                         'Tap arrows/worms to clear the board!',
                         style: GoogleFonts.outfit(
-                          fontSize: 16,
+                          fontSize: 13,
                           fontWeight: FontWeight.w500,
                           color: const Color(0xFF4E3629).withOpacity(0.7),
                         ),
                       ),
 
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 10),
                     ],
                   ),
                 ),

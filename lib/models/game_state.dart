@@ -49,7 +49,9 @@ class GameState extends ChangeNotifier {
   }
 
   void generateProceduralLevel(int level) {
-    // Dynamically scale grid size based on level.
+    // Dynamically scale grid size based on level. Growth continues past
+    // level 70 (instead of flattening out) so very high "Super Hard" levels
+    // keep getting visibly denser, matching the original game.
     if (level == 1) {
       gridWidth = 4;
       gridHeight = 4;
@@ -62,19 +64,33 @@ class GameState extends ChangeNotifier {
     } else if (level < 15) {
       gridWidth = 8;
       gridHeight = 9;
-    } else if (level < 28) {
+    } else if (level < 24) {
       gridWidth = 9;
       gridHeight = 10;
-    } else if (level < 45) {
+    } else if (level < 35) {
       gridWidth = 9;
       gridHeight = 11;
-    } else if (level < 70) {
+    } else if (level < 45) {
       gridWidth = 10;
       gridHeight = 12;
-    } else {
+    } else if (level < 55) {
       gridWidth = 11;
       gridHeight = 13;
+    } else if (level < 70) {
+      gridWidth = 12;
+      gridHeight = 15;
+    } else if (level < 90) {
+      gridWidth = 13;
+      gridHeight = 16;
+    } else if (level < 120) {
+      gridWidth = 14;
+      gridHeight = 17;
+    } else {
+      gridWidth = 15;
+      gridHeight = 18;
     }
+
+    final int boundaryCapacity = gridWidth * 2 + gridHeight * 2 - 4;
 
     int pathCount;
     if (level == 1) {
@@ -83,14 +99,21 @@ class GameState extends ChangeNotifier {
       pathCount = 8;
     } else if (level == 3) {
       pathCount = 10;
-    } else if (level < 35) {
-      pathCount = 12;
     } else {
-      pathCount = 12 + ((level - 35) ~/ 15).clamp(0, 2);
+      // Pack most of the boundary with starting points so the board fills
+      // up on all 4 sides instead of leaving big empty patches, getting
+      // denser (and more tangled) as the level climbs.
+      final double fraction = level < 8
+          ? 0.55
+          : level < 15
+              ? 0.65
+              : level < 35
+                  ? 0.78
+                  : 0.9;
+      pathCount = (boundaryCapacity * fraction).round();
     }
-    final int boundaryCapacity = gridWidth * 2 + gridHeight * 2 - 4;
-    if (pathCount > 14) pathCount = 14;
-    if (pathCount > boundaryCapacity) pathCount = boundaryCapacity;
+    if (pathCount > 48) pathCount = 48;
+    if (pathCount > boundaryCapacity - 2) pathCount = boundaryCapacity - 2;
 
     int minLen;
     int maxLen;
@@ -149,15 +172,10 @@ class GameState extends ChangeNotifier {
 
         if (boundaryPoints.isEmpty) break;
 
-        final centerX = (gridWidth - 1) / 2.0;
-        final centerY = (gridHeight - 1) / 2.0;
-        boundaryPoints.sort((a, b) {
-          final aDist = (a.x - centerX).abs() + (a.y - centerY).abs();
-          final bDist = (b.x - centerX).abs() + (b.y - centerY).abs();
-          return aDist.compareTo(bDist);
-        });
-        final pickRange = boundaryPoints.length.clamp(1, 6);
-        final start = boundaryPoints[rand.nextInt(pickRange)];
+        // Spread starting points across the whole boundary (all 4 sides,
+        // corners included) instead of favoring the middle of each edge,
+        // so the board packs evenly all the way around.
+        final start = boundaryPoints[rand.nextInt(boundaryPoints.length)];
 
         List<GridPoint> pathPts = [start];
         occupied.add(start);
@@ -186,8 +204,13 @@ class GameState extends ChangeNotifier {
 
           if (neighborDirs.isEmpty) break;
 
+          // Turn more aggressively past the tutorial levels so paths coil
+          // and weave into each other instead of running in long straight
+          // stretches.
+          final double straightChance = level <= 3 ? 0.3 : 0.15;
+
           GridPoint chosenDir;
-          if (previousDir != null && neighborDirs.contains(previousDir) && rand.nextDouble() < 0.3) {
+          if (previousDir != null && neighborDirs.contains(previousDir) && rand.nextDouble() < straightChance) {
             // Occasionally keep going straight
             chosenDir = previousDir;
           } else {
@@ -244,25 +267,25 @@ class GameState extends ChangeNotifier {
     return progress.clamp(0.0, 1.0);
   }
 
+  // Removing a currently-clear path only clears cells, so it can never block
+  // another path. That means a greedy sweep (no backtracking needed) always
+  // finds a valid removal order if one exists.
   bool isLevelSolvable(List<PathModel> candidatePaths) {
     if (candidatePaths.isEmpty) return true;
     final remaining = candidatePaths.map((path) => path.copyWith()).toList();
-    return _canSolveRemaining(remaining);
-  }
 
-  bool _canSolveRemaining(List<PathModel> remainingPaths) {
-    if (remainingPaths.isEmpty) return true;
-
-    for (final path in List<PathModel>.from(remainingPaths)) {
-      if (_canRemovePath(path, remainingPaths)) {
-        final nextRemaining = remainingPaths.where((candidate) => candidate.id != path.id).toList();
-        if (_canSolveRemaining(nextRemaining)) {
-          return true;
+    bool removedAny = true;
+    while (remaining.isNotEmpty && removedAny) {
+      removedAny = false;
+      for (final path in List<PathModel>.from(remaining)) {
+        if (_canRemovePath(path, remaining)) {
+          remaining.remove(path);
+          removedAny = true;
         }
       }
     }
 
-    return false;
+    return remaining.isEmpty;
   }
 
   bool _canRemovePath(PathModel path, List<PathModel> remainingPaths) {

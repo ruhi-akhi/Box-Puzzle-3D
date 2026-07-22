@@ -13,10 +13,6 @@ To run on an Android or iOS emulator:
 ```bash
 
 
-```
-
----
-
 ## How to Build & Publish to Itch.io (HTML5 Web)
 
 To build a standalone Web build that you can upload directly to itch.io:

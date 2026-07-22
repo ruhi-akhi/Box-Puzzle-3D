@@ -145,9 +145,11 @@ class BoardPainter extends CustomPainter {
     final linePaint = Paint()
       ..color = const Color(0xFF6D4C41) // Brown arrow lines matching screenshot
       ..style = PaintingStyle.stroke
-      ..strokeWidth = cellSize * 0.07
+      ..strokeWidth = cellSize * 0.06
       ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round;
+      // Sharp square corners (not rounded pipe-bends) so segments read as
+      // tightly stitched-together right angles, like the reference maze.
+      ..strokeJoin = StrokeJoin.miter;
 
     final pathObj = Path();
     bool started = false;

@@ -96,9 +96,9 @@ class GameState extends ChangeNotifier {
     if (level == 1) {
       pathCount = 5;
     } else if (level == 2) {
-      pathCount = 8;
+      pathCount = 11;
     } else if (level == 3) {
-      pathCount = 10;
+      pathCount = 14;
     } else {
       // Pack most of the boundary with starting points so the board fills
       // up on all 4 sides instead of leaving big empty patches, getting
@@ -122,7 +122,7 @@ class GameState extends ChangeNotifier {
       maxLen = 4;
     } else if (level == 2) {
       minLen = 3;
-      maxLen = 5;
+      maxLen = 6;
     } else if (level < 8) {
       minLen = 4;
       maxLen = 6;
@@ -150,12 +150,45 @@ class GameState extends ChangeNotifier {
     ];
 
     List<PathModel> candidatePaths = [];
+
+    // Used to bias path growth toward the middle of the board, so lines
+    // coil and interlock in the center instead of sitting as short stubs
+    // right against the 4 edges.
+    final double centerX = (gridWidth - 1) / 2.0;
+    final double centerY = (gridHeight - 1) / 2.0;
+    double distToCenter(GridPoint p) {
+      final dx = p.x - centerX;
+      final dy = p.y - centerY;
+      return dx * dx + dy * dy;
+    }
+
+    GridPoint pickWeighted(GridPoint from, List<GridPoint> candidates, math.Random rand) {
+      final double curDist = distToCenter(from);
+      final weights = candidates.map((d) => distToCenter(from + d) < curDist ? 3.0 : 1.0).toList();
+      final double total = weights.reduce((a, b) => a + b);
+      double r = rand.nextDouble() * total;
+      for (int i = 0; i < candidates.length; i++) {
+        r -= weights[i];
+        if (r <= 0) return candidates[i];
+      }
+      return candidates.last;
+    }
+
     for (int attempt = 0; attempt < 250; attempt++) {
       candidatePaths = [];
       final occupied = <GridPoint>{};
       final rand = math.Random(level * 97 + attempt * 23);
 
-      for (int pIdx = 0; pIdx < pathCount; pIdx++) {
+      // Decide every path's target length up front, then place the longest
+      // paths first. That lets them claim a route into the still-open
+      // middle of the board; shorter paths fill in the leftover space near
+      // the edges afterwards instead of everyone dying early near the rim.
+      final List<int> pathOrder = List.generate(pathCount, (i) => i);
+      final List<int> targetLens =
+          List.generate(pathCount, (_) => minLen + rand.nextInt(maxLen - minLen + 1));
+      pathOrder.sort((a, b) => targetLens[b].compareTo(targetLens[a]));
+
+      for (final pIdx in pathOrder) {
         List<GridPoint> boundaryPoints = [];
         for (int x = 0; x < gridWidth; x++) {
           final top = GridPoint(x, 0);
@@ -180,7 +213,7 @@ class GameState extends ChangeNotifier {
         List<GridPoint> pathPts = [start];
         occupied.add(start);
 
-        int targetLen = minLen + rand.nextInt(maxLen - minLen + 1);
+        int targetLen = targetLens[pIdx];
         GridPoint current = start;
         GridPoint? previousDir;
 
@@ -207,7 +240,7 @@ class GameState extends ChangeNotifier {
           // Turn more aggressively past the tutorial levels so paths coil
           // and weave into each other instead of running in long straight
           // stretches.
-          final double straightChance = level <= 3 ? 0.3 : 0.15;
+          final double straightChance = level <= 1 ? 0.3 : 0.15;
 
           GridPoint chosenDir;
           if (previousDir != null && neighborDirs.contains(previousDir) && rand.nextDouble() < straightChance) {
@@ -218,7 +251,7 @@ class GameState extends ChangeNotifier {
             List<GridPoint> turnDirs =
                 previousDir == null ? neighborDirs : neighborDirs.where((d) => d != previousDir).toList();
             if (turnDirs.isEmpty) turnDirs = neighborDirs;
-            chosenDir = turnDirs[rand.nextInt(turnDirs.length)];
+            chosenDir = pickWeighted(current, turnDirs, rand);
           }
 
           current = current + chosenDir;

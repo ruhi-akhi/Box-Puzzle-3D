@@ -36,7 +36,6 @@ To build a standalone Web build that you can upload directly to itch.io:
    - Configure the viewport dimensions (e.g., width `480px`, height `720px` to look like a mobile portrait phone).
    - Save and view your page to test!
 
----
 
 ## How to Build for Mobile (Android & iOS)
 

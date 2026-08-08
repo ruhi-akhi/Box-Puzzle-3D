@@ -20,21 +20,35 @@ To build a standalone Web build that you can upload directly to itch.io:
 1. **Build the Web project**:
    Run this command in the project root:
    ```bash
-   flutter build web --release --web-renderer canvaskit
+   flutter build web --release
    ```
-   This will compile the game into HTML, JavaScript, and WebGL assets, located in `build/web/`.
+   (Note: `--web-renderer` was removed in recent Flutter versions — CanvasKit is used
+   automatically now. Don't pass `--wasm` for itch.io; plain JS output is more broadly
+   compatible with itch's CDN.)
+   This compiles the game into `build/web/`.
 
-2. **Package the build**:
+2. **Fix the base href for itch.io** (itch.io serves the game from a non-root path, so
+   the default `/` base href causes a blank white page):
+   - Open `build/web/index.html`.
+   - Change `<base href="/">` to `<base href="./">`.
+   - (Flutter's `--base-href` flag refuses a bare `./`, so this has to be a manual edit
+     after the build, not a build flag.)
+
+3. **Package the build**:
    - Go to the `build/web/` directory.
-   - Select all files inside the `web` folder and compress them into a `.zip` archive (e.g., `amaze_go_web.zip`). **Make sure `index.html` is at the root level of the zip file, not inside a subfolder.**
+   - Select all files *inside* it (`index.html`, `main.dart.js`, `assets/`, etc.) and
+     compress them into a `.zip` archive (e.g., `amaze_go_web.zip`). **Make sure
+     `index.html` is at the root level of the zip, not inside a subfolder.**
 
-3. **Upload to Itch.io**:
+4. **Upload to Itch.io**:
    - Log in to your [itch.io](https://itch.io/) dashboard and create a new project.
    - Set **Kind of project** to **HTML** (plays in the browser).
    - Under **Uploads**, upload your `amaze_go_web.zip` file.
    - Tick the checkbox **This file will be played in the browser**.
-   - Configure the viewport dimensions (e.g., width `480px`, height `720px` to look like a mobile portrait phone).
-   - Save and view your page to test!
+   - Configure the viewport dimensions (e.g., width `480px`, height `720px` to look like
+     a mobile portrait phone) and enable the fullscreen button.
+   - Save with **Draft** or **Restricted** visibility first and test the embed before
+     switching to **Public**.
 
 
 ## How to Build for Mobile (Android & iOS)
@@ -49,3 +63,4 @@ To build a standalone Web build that you can upload directly to itch.io:
   ```bash
   flutter build ipa --release
   ```
+

@@ -75,12 +75,8 @@ class HomeScreen extends StatelessWidget {
                         Expanded(
                           child: Container(
                             height: 160,
+                            clipBehavior: Clip.antiAlias,
                             decoration: BoxDecoration(
-                              gradient: const LinearGradient(
-                                colors: [Color(0xFFE07A5F), Color(0xFFD35230)],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              ),
                               borderRadius: BorderRadius.circular(24),
                               boxShadow: [
                                 BoxShadow(
@@ -92,13 +88,10 @@ class HomeScreen extends StatelessWidget {
                             ),
                             child: Stack(
                               children: [
-                                Positioned(
-                                  right: -10,
-                                  bottom: -10,
-                                  child: Icon(
-                                    Icons.emoji_events,
-                                    size: 90,
-                                    color: Colors.white.withOpacity(0.15),
+                                Positioned.fill(
+                                  child: Image.asset(
+                                    'assets/image/dailychallenge.png',
+                                    fit: BoxFit.cover,
                                   ),
                                 ),
                                 Padding(
@@ -106,21 +99,6 @@ class HomeScreen extends StatelessWidget {
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Text(
-                                        'Daily Challenge',
-                                        style: GoogleFonts.outfit(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                      Text(
-                                        'Jul 12',
-                                        style: GoogleFonts.outfit(
-                                          fontSize: 13,
-                                          color: Colors.white.withOpacity(0.8),
-                                        ),
-                                      ),
                                       const Spacer(),
                                       ElevatedButton(
                                         onPressed: () {
@@ -157,12 +135,8 @@ class HomeScreen extends StatelessWidget {
                         Expanded(
                           child: Container(
                             height: 160,
+                            clipBehavior: Clip.antiAlias,
                             decoration: BoxDecoration(
-                              gradient: const LinearGradient(
-                                colors: [Color(0xFF81C784), Color(0xFF4CAF50)],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              ),
                               borderRadius: BorderRadius.circular(24),
                               boxShadow: [
                                 BoxShadow(
@@ -174,13 +148,10 @@ class HomeScreen extends StatelessWidget {
                             ),
                             child: Stack(
                               children: [
-                                Positioned(
-                                  right: -10,
-                                  bottom: -10,
-                                  child: Icon(
-                                    Icons.bug_report,
-                                    size: 90,
-                                    color: Colors.white.withOpacity(0.15),
+                                Positioned.fill(
+                                  child: Image.asset(
+                                    'assets/image/eventspringbattle.png',
+                                    fit: BoxFit.cover,
                                   ),
                                 ),
                                 Padding(
@@ -188,21 +159,6 @@ class HomeScreen extends StatelessWidget {
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Text(
-                                        'Event',
-                                        style: GoogleFonts.outfit(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                      Text(
-                                        'Spring Battle',
-                                        style: GoogleFonts.outfit(
-                                          fontSize: 13,
-                                          color: Colors.white.withOpacity(0.8),
-                                        ),
-                                      ),
                                       const Spacer(),
                                       ElevatedButton(
                                         onPressed: () {

@@ -142,61 +142,56 @@ class BoardPainter extends CustomPainter {
     int startIdx = slide.floor();
     if (startIdx >= path.length) return;
 
-    final linePaint = Paint()
-      ..color = const Color(0xFF6D4C41) // Brown arrow lines matching screenshot
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = cellSize * 0.06
-      ..strokeCap = StrokeCap.round
-      // Sharp square corners (not rounded pipe-bends) so segments read as
-      // tightly stitched-together right angles, like the reference maze.
-      ..strokeJoin = StrokeJoin.miter;
-
-    final pathObj = Path();
-    bool started = false;
-
+    // Draw each snake with a shadow underneath so the trail reads as a
+    // single connected 3D ribbon resting on the board.
     for (int i = startIdx; i < path.length; i++) {
-      Offset pos = path.getSegmentOffset(i, slide, cellSize) + bumpOffset;
-      if (!started) {
-        pathObj.moveTo(pos.dx, pos.dy);
-        started = true;
+      Offset center = path.getSegmentOffset(i, slide, cellSize) + bumpOffset;
+
+      GridPoint dir;
+      if (i < path.length - 1) {
+        final cur = path.points[i];
+        final nxt = path.points[i + 1];
+        dir = GridPoint(nxt.x - cur.x, nxt.y - cur.y);
       } else {
-        pathObj.lineTo(pos.dx, pos.dy);
+        dir = path.exitDirection;
       }
+
+      _drawFilledArrow(canvas, center + const Offset(1, 2), dir, Colors.black.withOpacity(0.15), cellSize);
+      _drawFilledArrow(canvas, center, dir, path.color, cellSize);
     }
-
-    // Draw the main line
-    canvas.drawPath(pathObj, linePaint);
-
-    // Draw arrowhead at the head
-    Offset headPos = path.getSegmentOffset(path.length - 1, slide, cellSize) + bumpOffset;
-    _drawArrowHead(canvas, headPos, path.exitDirection, cellSize);
   }
 
-  void _drawArrowHead(Canvas canvas, Offset headPos, GridPoint direction, double cellSize) {
-    final arrowPaint = Paint()
-      ..color = const Color(0xFF6D4C41) // Matching brown arrowhead
+  // Draws a filled arrow that fills its own cell and reaches into the
+  // neighbouring cell, so consecutive pieces of the same snake chain
+  // together with no visible gap between them.
+  void _drawFilledArrow(Canvas canvas, Offset center, GridPoint direction, Color color, double cellSize) {
+    final f = Offset(direction.x.toDouble(), direction.y.toDouble());
+    final s = Offset(-f.dy, f.dx);
+
+    // Overshoot the cell boundary by ~6% so abutting arrows overlap and
+    // anti-aliasing never leaves a hairline gap between pieces.
+    final double total = cellSize * 0.53;
+    final double headLen = cellSize * 0.42;
+    final double bodyHalfW = cellSize * 0.22;
+    final double headHalfW = cellSize * 0.30;
+
+    final Offset rearPos = center - f * total;
+    final Offset frontPos = center + f * (total - headLen);
+    final Offset tip = center + f * total;
+
+    final paint = Paint()
+      ..color = color
       ..style = PaintingStyle.fill;
 
-    double angle = 0.0;
-    if (direction.x > 0) angle = 0.0;
-    if (direction.x < 0) angle = math.pi;
-    if (direction.y > 0) angle = math.pi / 2;
-    if (direction.y < 0) angle = -math.pi / 2;
-
-    double arrowSize = cellSize * 0.13;
-
-    canvas.save();
-    canvas.translate(headPos.dx, headPos.dy);
-    canvas.rotate(angle);
-
     final path = Path()
-      ..moveTo(arrowSize * 1.2, 0)
-      ..lineTo(0, -arrowSize)
-      ..lineTo(0, arrowSize)
+      ..moveTo(rearPos.dx + s.dx * bodyHalfW, rearPos.dy + s.dy * bodyHalfW)
+      ..lineTo(rearPos.dx - s.dx * bodyHalfW, rearPos.dy - s.dy * bodyHalfW)
+      ..lineTo(frontPos.dx - s.dx * headHalfW, frontPos.dy - s.dy * headHalfW)
+      ..lineTo(tip.dx, tip.dy)
+      ..lineTo(frontPos.dx + s.dx * headHalfW, frontPos.dy + s.dy * headHalfW)
       ..close();
 
-    canvas.drawPath(path, arrowPaint);
-    canvas.restore();
+    canvas.drawPath(path, paint);
   }
 
   @override

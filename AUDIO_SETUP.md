@@ -55,7 +55,7 @@ Create these sound effect files in `assets/sounds/`:
 - itch.io/sounds/
 - OpenGameArt.org
 
----
+
 
 ## Step 3: Test Your Changes
 
@@ -72,7 +72,7 @@ Create these sound effect files in `assets/sounds/`:
 
 3. **No audio files yet?** No problem! The app works perfectly without them.
 
----
+
 
 ## Step 4: Use Audio in Your Game Code
 
@@ -92,9 +92,7 @@ await GameAudio.playDefeat();
 
 // For UI button clicks
 await GameAudio.playButtonClick();
-```
 
----
 
 ## Quick Audio File Recommendations
 
@@ -110,7 +108,7 @@ await GameAudio.playButtonClick();
 - "UI Sounds" packs on itch.io
 - "Casual Game Sounds" collections
 
----
+
 
 ## Troubleshooting
 
@@ -129,12 +127,12 @@ await GameAudio.playButtonClick();
 ### ❌ Audio too loud or quiet
 
 - Adjust in code:
-  ```dart
+  dart
   await GameAudio.setMusicVolume(0.5);   // 50%
   await GameAudio.setSoundVolume(0.7);   // 70%
-  ```
 
----
+
+
 
 ## Audio System Features
 
@@ -145,11 +143,11 @@ await GameAudio.playButtonClick();
 ✅ **Gracefully handles missing files**  
 ✅ **Volume control**
 
----
+
 
 ## File Structure
 
-```
+
 assets/
 ├── music/
 │   └── background_music.mp3
@@ -163,6 +161,6 @@ assets/
 lib/services/
 ├── audio_manager.dart      # Core audio system
 └── game_audio.dart         # Easy-to-use helpers
-```
+
 
 Ready to add audio? Download a track and drop it into `assets/music/`! 🎵
